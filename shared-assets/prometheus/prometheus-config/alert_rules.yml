@@ -1,0 +1,86 @@
+groups:
+- name: Zookeeper
+  rules:
+  - alert: Zookeeper(s) Down
+    expr: count by (cluster)(up{job="zookeeper"} == 0) > 0
+    for: 2s
+    labels:
+      severity: warning
+    annotations:
+      summary: "One or more Zookeeper failed in {{ $labels.cluster }}"
+      description: "One or more Zookeeper(s) failed in {{ $labels.cluster }}"
+- name: kafka
+  rules:
+  - alert: Broker(s) Down
+    expr: count by (cluster)(up{job="kafka-broker"} == 0) > 0
+    for: 2s
+    labels:
+      severity: warning
+    annotations:
+      summary: "One or more broker(s) failed in {{ $labels.cluster }}"
+      description: "One or more broker(s) failed in {{ $labels.cluster }}"
+
+  - alert: Under Replicated Partitions
+    expr: sum by (cluster)(kafka_cluster_partition_underreplicated) > 0
+    for: 5s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Under-Replicated Partitions detected in {{$labels.cluster}}"
+      description: "Kafka cluster {{ $labels.cluster }} has {{ $value }} under-replicated partitions."
+
+  - alert: Under ISR Partitions
+    expr: sum by (cluster)(kafka_cluster_partition_underminisr) > 0
+    for: 5s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Under Min-ISR Partitions detected in {{$labels.cluster}}"
+      description: "Kafka cluster {{ $labels.cluster }} has {{ $value }} under Min-ISR partitions."
+  
+  - alert: Offline Partitions
+    expr: sum by (cluster)(kafka_controller_kafkacontroller_offlinepartitionscount) > 0
+    for: 5s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Offline partitions detected in {{$labels.cluster}}"
+      description: "Kafka cluster {{ $labels.cluster }} has {{ $value }} offline partitions."
+
+  - alert: Un-Clean Laeder Election
+    expr: sum by (cluster)(kafka_controller_controllerstats_uncleanleaderelectionspersec) > 0
+    for: 5s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Un-Clean leader election detected in {{$labels.cluster}}"
+      description: "Kafka cluster {{ $labels.cluster }} has {{ $value }} un-clean leader elections happened."
+
+  - alert: ISR Shrinking
+    expr: sum by(cluster)(rate(kafka_server_replicamanager_isrshrinkspersec[5m]))
+    for: 5s
+    labels:
+      severity: warning
+    annotations:
+      summary: "ISR Shrinking detected in {{$labels.cluster}}"
+      description: "Kafka cluster {{ $labels.cluster }} has {{ $value }} ISR shrinking."
+
+  - alert: ISR Expanding
+    expr: sum by(cluster)(rate(kafka_server_replicamanager_isrexpandspersec[5m]))
+    for: 5s
+    labels:
+      severity: warning
+    annotations:
+      summary: "ISR Shrinking detected in {{$labels.cluster}}"
+      description: "Kafka cluster {{ $labels.cluster }} has {{ $value }} ISR expanding."
+
+- name: consumer-group
+  rules:
+  - alert: Large Consumer Groups Lag
+    expr: sum by (cluster_name,topic,group)(kafka_consumergroup_group_lag_seconds) > 10
+    for: 2s
+    labels:
+      severity: warning
+    annotations:
+      summary: "One or more consumer group has lag"
+      description: "The consumer group {{$labels.group}} has lag of {{$value}}"

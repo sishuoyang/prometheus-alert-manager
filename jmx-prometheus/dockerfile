@@ -1,0 +1,15 @@
+# Use the official Alpine as a base image
+FROM alpine:latest
+
+# Update the package list and install Kerberos packages
+RUN apk update && \
+    apk add --no-cache krb5 krb5-dev krb5-libs krb5-conf krb5-kdc krb5-admin-server
+
+# Optionally, add your Kerberos configuration here if needed
+# COPY krb5.conf /etc/krb5.conf
+
+# Set the working directory
+WORKDIR /app
+
+# Command to keep the container running (adjust as needed)
+CMD ["tail", "-f", "/dev/null"]

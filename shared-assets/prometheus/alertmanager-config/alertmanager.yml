@@ -1,0 +1,43 @@
+global:
+  resolve_timeout: 1m
+  slack_api_url: 'https://slack.com/api/chat.postMessage'
+  http_config:
+    authorization: 
+      type: 'Bearer xoxb-aaaaaaaaaaaaa-7373737373737-sxxxxxxxxxxsxxxxxxxxxx' #change your slack token here.
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 2m
+  repeat_interval: 5m
+  receiver: 'default'
+  routes:
+    - match:
+        group: 'test_group1'
+      receiver: 'group1-owner'
+    - match:
+        group: 'test_group2'
+      receiver: 'group2-owner'
+
+receivers:
+- name: 'default'
+  slack_configs:
+  - channel: '#prometheus'
+    send_resolved: false
+    title: '{{ .CommonAnnotations.summary }}'
+    text: '{{ .CommonAnnotations.description }}'
+- name: 'group1-owner'
+  slack_configs:
+  - channel: '#cg_group1'
+    send_resolved: false
+    title: '{{ .CommonAnnotations.summary }}'
+    text: '{{ .CommonAnnotations.description }}'
+- name: 'group2-owner'
+  slack_configs:
+  - channel: '#cg_group2'
+    send_resolved: false
+    title: '{{ .CommonAnnotations.summary }}'
+    text: '{{ .CommonAnnotations.description }}'
+  # email_configs:
+  # - to: 'default@company.com'
+  #   from: 'alertmanager@company.com'
+  #   smarthost: 'smtp.company.com:587'
